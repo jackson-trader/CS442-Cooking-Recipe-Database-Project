@@ -126,16 +126,6 @@ export function SignIn({ onSignIn, onSignUp, onBack }: SignInProps) {
             </CardFooter>
           </Card>
 
-          <div className="mt-8 text-center text-xs text-muted-foreground">
-            By signing in, you agree to our{" "}
-            <Button variant="link" className="p-0 h-auto text-xs text-primary hover:text-orange-500">
-              Terms of Service
-            </Button>{" "}
-            and{" "}
-            <Button variant="link" className="p-0 h-auto text-xs text-primary hover:text-orange-500">
-              Privacy Policy
-            </Button>
-          </div>
         </div>
       </div>
   );

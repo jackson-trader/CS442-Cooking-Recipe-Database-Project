@@ -69,15 +69,7 @@ export function SignUp({ onSignUp, onSignIn, onBack }: SignUpProps) {
   };
 
   const handleSignIn = () => (onSignIn ? onSignIn() : go("/sign-in"));
-
-  const handleBack = () => {
-    const sameOrigin = typeof document !== 'undefined' && document.referrer.startsWith(location.origin);
-    if (sameOrigin && window.history.length > 1) {
-      router.back();
-    } else {
-      router.replace('/' as Route);
-    }
-  };
+  const goBack   = () => (onBack ? onBack() : router.back());
 
   return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -87,7 +79,7 @@ export function SignUp({ onSignUp, onSignIn, onBack }: SignUpProps) {
             <Button
                 variant="ghost"
                 className="p-0 h-auto hover:bg-transparent"
-                onClick={handleBack}
+                onClick={goBack}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               <span className="text-2xl font-bold text-primary">FlavorDB</span>
@@ -183,9 +175,6 @@ export function SignUp({ onSignUp, onSignIn, onBack }: SignUpProps) {
             </CardFooter>
           </Card>
 
-          <div className="mt-8 text-center text-xs text-muted-foreground">
-            By creating an account, you agree to receive updates about new recipes and features.
-          </div>
         </div>
       </div>
   );

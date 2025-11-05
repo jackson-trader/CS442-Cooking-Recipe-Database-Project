@@ -56,7 +56,7 @@ export function Navigation({
                   className="hidden sm:flex items-center space-x-2"
                 >
                   <Home className="h-4 w-4" />
-                  <span>Browse</span>
+                  <span>Home</span>
                 </Button>
 
                 <Button
@@ -108,7 +108,7 @@ export function Navigation({
                     className="hidden sm:flex items-center space-x-2"
                   >
                     <Home className="h-4 w-4" />
-                    <span>Browse</span>
+                    <span>Home</span>
                   </Button>
                 )}
                 {onSignIn && (

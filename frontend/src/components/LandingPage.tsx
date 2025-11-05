@@ -103,7 +103,7 @@ export function LandingPage({ onSignIn, onSignUp, onBrowseGuest }: LandingPagePr
         <div className="bg-orange-500 rounded-2xl p-8 text-center text-white">
           <h2 className="text-3xl font-bold mb-4">Ready to Start Cooking?</h2>
           <p className="text-xl mb-6 opacity-90">
-            Join thousands of home cooks sharing their favorite recipes
+            Join thousands of home cooks sharing their favorite recipes!
           </p>
           <div className="space-x-4">
             <Button 
