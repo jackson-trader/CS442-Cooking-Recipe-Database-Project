@@ -35,9 +35,9 @@ interface HomeBrowseProps {
 
 const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
     const author =
-        typeof r.recipeOwner === "string"
-            ? r.recipeOwner
-            : r?.recipeOwner?.name ?? "Unknown";
+        typeof r.ownerUsername === "string"
+            ? r.ownerUsername
+            : r?.ownerUsername?.name ?? "Unknown";
 
     // const dietaryTags = (r.tag ?? "")
     //     .split("_")

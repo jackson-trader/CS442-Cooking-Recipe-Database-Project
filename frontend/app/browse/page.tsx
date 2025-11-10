@@ -11,7 +11,7 @@ type ApiRecipe = {
   difficulty?: number | null;
   upvotes?: number | null;
   steps?: string | null;
-  recipeOwner?: { name?: string } | string | null;
+  ownerUsername?: { name?: string } | string | null;
   imageUrl?: string | null;
   tag?: string[] | null; 
   ingredients?: unknown[];
