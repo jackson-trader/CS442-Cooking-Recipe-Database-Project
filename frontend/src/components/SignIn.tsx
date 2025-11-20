@@ -12,14 +12,14 @@ import { Alert, AlertDescription } from "./ui/alert";
 import {Route} from "next";
 
 type SignInProps = {
-  onSignIn?: (email: string, password: string) => boolean | Promise<boolean>;
+  onSignIn?: (username: string, password: string) => boolean | Promise<boolean>;
   onSignUp?: () => void;
   onBack?: () => void;
 };
 
 export function SignIn({ onSignIn, onSignUp, onBack }: SignInProps) {
   const router = useRouter();
-  const [email, setEmail]       = useState("");
+  const [username, setUsername]       = useState("");
   const [password, setPassword] = useState("");
   const [error, setError]       = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -29,17 +29,17 @@ export function SignIn({ onSignIn, onSignUp, onBack }: SignInProps) {
     setError("");
     setIsLoading(true);
 
-    if (!email || !password) {
-      setError("Please enter both email and password");
+    if (!username || !password) {
+      setError("Please enter both username and password");
       setIsLoading(false);
       return;
     }
 
     const success = onSignIn
-        ? await onSignIn(email, password)
+        ? await onSignIn(username, password)
         : true;
 
-    if (!success) setError("Invalid email or password");
+    if (!success) setError("Invalid username or password");
     else router.push("/browse");
 
     setIsLoading(false);
@@ -62,7 +62,7 @@ export function SignIn({ onSignIn, onSignUp, onBack }: SignInProps) {
             <CardHeader className="space-y-1">
               <CardTitle className="text-2xl text-center">Sign in to your account</CardTitle>
               <CardDescription className="text-center">
-                Enter your email and password to access your recipe collection
+                Enter your username and password to access your recipe collection
               </CardDescription>
             </CardHeader>
 
@@ -76,13 +76,12 @@ export function SignIn({ onSignIn, onSignUp, onBack }: SignInProps) {
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="username">Username</Label>
                   <Input
-                      id="email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      id="username"
+                      placeholder="Enter your username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
                       className="w-full"
                       required
                   />

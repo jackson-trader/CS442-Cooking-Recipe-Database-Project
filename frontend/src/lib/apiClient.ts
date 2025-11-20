@@ -14,7 +14,7 @@ export function useApi() {
 
         const needsCsrf = method !== "GET" && method !== "HEAD";
         if (needsCsrf && csrfToken) {
-            headers.set("X-CSRF-TOKEN", csrfToken);
+            headers.set("X-XSRF-TOKEN", csrfToken);
         }
 
 
