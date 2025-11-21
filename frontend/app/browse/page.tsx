@@ -14,7 +14,7 @@ type ApiRecipe = {
   ownerUsername?: { name?: string } | string | null;
   imageUrl?: string | null;
   tag?: string[] | null; 
-  ingredients?: unknown[];
+  ingredients?: string[];
 };
 
   export default async function Page() {

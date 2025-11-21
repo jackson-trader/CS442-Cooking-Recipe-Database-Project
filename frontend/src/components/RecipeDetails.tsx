@@ -1,3 +1,4 @@
+"use client"
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
@@ -15,6 +16,8 @@ import {
   Send
 } from "lucide-react";
 import { mockRecipes, Recipe } from "../data/recipes";
+import { ApiRecipe, UiRecipe } from "../types/recipe";
+import { useSession } from "../context/CsrfContext";
 
 interface User {
   id: string;
@@ -23,58 +26,46 @@ interface User {
 }
 
 interface RecipeDetailsProps {
-  recipeId: string;
-  user?: User;
-  onHome: () => void;
-  onProfile?: () => void;
-  onCreateRecipe?: () => void;
-  onSignIn?: () => void;
-  onSignUp?: () => void;
-  onSignOut?: () => void;
+  recipeAPI: ApiRecipe;
 }
 
-export function RecipeDetails({ 
-  recipeId, 
-  user, 
-  onHome, 
-  onProfile, 
-  onCreateRecipe,
-  onSignIn,
-  onSignUp,
-  onSignOut 
-}: RecipeDetailsProps) {
+const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
+    const author =
+        typeof r.ownerUsername === "string"
+            ? r.ownerUsername
+            : r?.ownerUsername?.name ?? "Unknown";
+
+
+    return {
+        commentCount: 0, comments: [],
+        ingredients: r.ingredients ?? [],
+        id: String(r.recipeID),
+        title: r.title,
+        description: r.description ?? "",
+        imageUrl: r.imageUrl ?? "/placeholder.png",
+        cuisine: "Other",
+        dietaryTags : r.tag ?? [] ,
+        prepTime: r.prepTime ?? 0,
+        cookTime: r.cookTime ?? 0,
+        servings: r.servings ?? 1,
+        upvotes: r.upvotes ?? 0,
+        bookmarkCount: 0,
+        author,
+        difficulty: r.difficulty ?? 1,
+        instructions: r.steps ? r.steps.split("\n").filter(s => s.trim() !== "") : [],
+    };
+};
+
+export function RecipeDetails(
+  {recipeAPI}: RecipeDetailsProps
+) {
   const [newComment, setNewComment] = useState("");
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [isUpvoted, setIsUpvoted] = useState(false);
   const [upvoteCount, setUpvoteCount] = useState(0);
-
-  const recipe = mockRecipes.find(r => r.id === recipeId);
-
-  if (!recipe) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <Navigation 
-          user={user}
-          onHome={onHome}
-          onProfile={onProfile}
-          onCreateRecipe={onCreateRecipe}
-          onSignIn={onSignIn}
-          onSignUp={onSignUp}
-        />
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Recipe not found</h1>
-            <Button onClick={onHome}>Back to Browse</Button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Initialize state with recipe data
-  useState(() => {
-    setUpvoteCount(recipe.upvotes);
-  });
+  const {user} = useSession();
+  
+  const recipe = normalizeRecipe(recipeAPI);
 
   const handleUpvote = () => {
     if (!user) return;
@@ -94,25 +85,16 @@ export function RecipeDetails({
   };
 
   const handleCommentSubmit = (e: React.FormEvent) => {
+    // TODO: ADD COMMENT ADDING HERE LATER
     e.preventDefault();
     if (!user || !newComment.trim()) return;
     
-    // In a real app, this would submit to an API
     console.log("New comment:", newComment);
     setNewComment("");
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navigation 
-        user={user}
-        onHome={onHome}
-        onProfile={onProfile}
-        onCreateRecipe={onCreateRecipe}
-        onSignIn={onSignIn}
-        onSignUp={onSignUp}
-        onSignOut={onSignOut}
-      />
       
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
@@ -120,7 +102,7 @@ export function RecipeDetails({
           <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-8">
             <div className="aspect-video bg-gray-200 relative">
               <img 
-                src={recipe.imageUrl} 
+                src={recipe.imageUrl!} 
                 alt={recipe.title}
                 className="w-full h-full object-cover"
               />
@@ -158,7 +140,7 @@ export function RecipeDetails({
                     </div>
                     <div className="flex items-center space-x-1">
                       <Heart className="h-4 w-4 fill-red-400 text-red-400" />
-                      <span>{recipe.bookmarkCount} bookmarks</span>
+                      <span>{recipe.upvotes} bookmarks</span>
                     </div>
                   </div>
                 </div>
@@ -211,10 +193,7 @@ export function RecipeDetails({
                 <ul className="space-y-2">
                   {recipe.ingredients.map((ingredient, index) => (
                     <li key={index} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
-                      <span>{ingredient.name}</span>
-                      <span className="text-gray-600 font-medium">
-                        {ingredient.quantity} {ingredient.unit}
-                      </span>
+                      <span>{ingredient}</span>
                     </li>
                   ))}
                 </ul>
@@ -267,7 +246,6 @@ export function RecipeDetails({
               ) : (
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg text-center">
                   <p className="text-gray-600 mb-2">Sign in to leave a comment</p>
-                  <Button onClick={onSignIn} variant="outline">Sign In</Button>
                 </div>
               )}
 
@@ -276,7 +254,6 @@ export function RecipeDetails({
                   <div key={comment.id} className="border-b border-gray-100 pb-4 last:border-0">
                     <div className="flex items-center space-x-2 mb-2">
                       <span className="font-medium">{comment.author}</span>
-                      <span className="text-sm text-gray-500">{comment.date}</span>
                     </div>
                     <p className="text-gray-700">{comment.content}</p>
                   </div>

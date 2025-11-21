@@ -60,7 +60,9 @@ const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
         servings: r.servings ?? 1,
         upvotes: r.upvotes ?? 0,
         bookmarkCount: 0,
-        author
+        difficulty: r.difficulty ?? 1,
+        author,
+        instructions: r.steps ? r.steps.split("\n").filter(s => s.trim() !== "") : [],
     };
 };
 

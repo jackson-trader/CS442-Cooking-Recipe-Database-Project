@@ -13,7 +13,7 @@ export type ApiRecipe = {
     ownerUsername?: { name?: string } | string | null;
     imageUrl?: string | null;
     tag?: string[] | null;
-    ingredients?: unknown[];
+    ingredients?: string[];
     comments?: ApiComment[] | null;
 };
 
@@ -48,4 +48,6 @@ export type UiRecipe = {
     ingredients: string[];
     comments: UiComment[];
     commentCount: number;
+    instructions: string[];
+    difficulty: number;
 };
