@@ -28,11 +28,6 @@ interface NavigationProps {
 }
 
 
-/*
-Why are these props dynamically passed in? if we change how the profile button works in the browse page we also need to change it in the 
-create recipe page, this should have a shared state that depends on auth status, NOT passed in props.
-TODO: change this MARK!!
-*/ 
 export function Navigation() {
   const { user, logout } = useSession();
   const router = useRouter();
