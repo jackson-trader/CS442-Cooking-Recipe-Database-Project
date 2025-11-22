@@ -1,14 +1,19 @@
+"use client";
 import { useState } from "react";
-import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
-import { Textarea } from "./ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Badge } from "./ui/badge";
-import { Navigation } from "./Navigation";
+import { Button } from "../../src/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../../src/components/ui/card";
+import { Input } from "../../src/components/ui/input";
+import { Label } from "../../src/components/ui/label";
+import { Textarea } from "../../src/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../src/components/ui/select";
+import { Badge } from "../../src/components/ui/badge";
+import { Navigation } from "../../src/components/Navigation";
 import { Plus, X, Save, Send } from "lucide-react";
-import { cuisineTypes, dietaryFilters } from "../data/recipes";
+import { cuisineTypes, dietaryFilters } from "../../src/data/recipes";
+import { useSession } from "@/src/context/CsrfContext";
+import { useRouter } from "next/navigation";
+import { IngredientEnum, INGREDIENTS, TagEnum } from "@/src/data/enums";
+import { useApi } from "@/src/lib/apiClient";
 
 interface User {
   id: string;
@@ -18,8 +23,6 @@ interface User {
 
 interface Ingredient {
   name: string;
-  quantity: string;
-  unit: string;
 }
 
 interface CreateRecipeProps {
@@ -29,22 +32,29 @@ interface CreateRecipeProps {
   onSignOut: () => void;
 }
 
-export function CreateRecipe({ user, onHome, onProfile, onSignOut }: CreateRecipeProps) {
+export default function CreateRecipe({ onHome, onProfile, onSignOut }: CreateRecipeProps) {
+  const router = useRouter();
+  const {user, loading} = useSession();
+  const {apiFetch} = useApi();
+
+  if(!user && !loading) {
+    router.push("/");
+    return null;
+  }
+  
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [cuisine, setCuisine] = useState("");
-  const [selectedDietaryTags, setSelectedDietaryTags] = useState<string[]>([]);
+  const [selectedDietaryTags, setSelectedDietaryTags] = useState<TagEnum[]>([]);
   const [prepTime, setPrepTime] = useState("");
   const [cookTime, setCookTime] = useState("");
   const [servings, setServings] = useState("");
-  const [ingredients, setIngredients] = useState<Ingredient[]>([
-    { name: "", quantity: "", unit: "" }
-  ]);
+  const [ingredients, setIngredients] = useState<IngredientEnum[]>(["SUGAR"]);
   const [instructions, setInstructions] = useState<string[]>([""]);
   const [imageUrl, setImageUrl] = useState("");
 
   const addIngredient = () => {
-    setIngredients([...ingredients, { name: "", quantity: "", unit: "" }]);
+    setIngredients([...ingredients, "SUGAR"]);
   };
 
   const removeIngredient = (index: number) => {
@@ -53,12 +63,12 @@ export function CreateRecipe({ user, onHome, onProfile, onSignOut }: CreateRecip
     }
   };
 
-  const updateIngredient = (index: number, field: keyof Ingredient, value: string) => {
-    const updated = ingredients.map((ingredient, i) =>
-      i === index ? { ...ingredient, [field]: value } : ingredient
-    );
-    setIngredients(updated);
-  };
+  // const updateIngredient = (index: number, field: keyof Ingredient, value: string) => {
+  //   const updated = ingredients.map((ingredient, i) =>
+  //     i === index ? { ...ingredient, [field]: value } : ingredient
+  //   );
+  //   setIngredients(updated);
+  // };
 
   const addInstruction = () => {
     setInstructions([...instructions, ""]);
@@ -77,7 +87,7 @@ export function CreateRecipe({ user, onHome, onProfile, onSignOut }: CreateRecip
     setInstructions(updated);
   };
 
-  const toggleDietaryTag = (tag: string) => {
+  const toggleDietaryTag = (tag: TagEnum) => {
     if (selectedDietaryTags.includes(tag)) {
       setSelectedDietaryTags(selectedDietaryTags.filter(t => t !== tag));
     } else {
@@ -91,28 +101,42 @@ export function CreateRecipe({ user, onHome, onProfile, onSignOut }: CreateRecip
     alert("Recipe saved as draft!");
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     // basic validation
-    if (!title || !description || !cuisine || ingredients.length === 0 || instructions.length === 0) {
+    if (!title || !description || ingredients.length === 0 || instructions.length === 0) {
       alert("Please fill in all required fields");
       return;
     }
 
-    // in the real app, this will post to backend
-    console.log("Publishing recipe...");
+const params = new URLSearchParams();
+params.append("title", title);
+params.append("description", description);
+params.append("prepTime", prepTime);
+params.append("cookTime", cookTime);
+params.append("servings", servings);
+params.append("difficulty", "1"); // or whatever
+params.append("steps", instructions.join("\n"));
+params.append("imageUrl", imageUrl);
+
+selectedDietaryTags.forEach(tag => params.append("tags", tag));
+ingredients.forEach(ing => params.append("ingredients", ing));
+    const res = await apiFetch(
+      `/api/recipes/create?${params.toString()}`,
+    {method: "POST"})
+
+    if (!res.ok) {
+      console.error("Failed to publish recipe:", res.status);
+      alert("Failed to publish recipe. Please try again.");
+      return;
+    }
+
     alert("Recipe published successfully!");
-    onHome();
+    router.push("/browse");
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation 
-        user={user}
-        currentPage="create-recipe"
-        onHome={onHome}
-        onProfile={onProfile}
-        onCreateRecipe={() => {}}
-        onSignOut={onSignOut}
       />
       
       <div className="container mx-auto px-4 py-8">
@@ -172,8 +196,8 @@ export function CreateRecipe({ user, onHome, onProfile, onSignOut }: CreateRecip
                   <CardTitle>Recipe Details</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
+                  <div className="">
+                    {/* <div>
                       <Label htmlFor="cuisine">Cuisine *</Label>
                       <Select value={cuisine} onValueChange={setCuisine}>
                         <SelectTrigger>
@@ -187,7 +211,7 @@ export function CreateRecipe({ user, onHome, onProfile, onSignOut }: CreateRecip
                           ))}
                         </SelectContent>
                       </Select>
-                    </div>
+                    </div> */}
 
                     <div>
                       <Label htmlFor="servings">Servings *</Label>
@@ -262,34 +286,37 @@ export function CreateRecipe({ user, onHome, onProfile, onSignOut }: CreateRecip
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {ingredients.map((ingredient, index) => (
+                          {ingredients.map((ingredient, index) => (
                       <div key={index} className="flex space-x-2 items-end">
                         <div className="flex-1">
-                          <Input
-                            value={ingredient.name}
-                            onChange={(e) => updateIngredient(index, "name", e.target.value)}
-                            placeholder="Ingredient name"
-                          />
+                          <Select
+                            value={ingredient}
+                            onValueChange={(value) => {
+                              setIngredients(prev =>
+                                prev.map((ing, i) => (i === index ? (value as IngredientEnum) : ing))
+                              );
+                            }}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select ingredient" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {INGREDIENTS.map(opt => (
+                                <SelectItem key={opt} value={opt}>
+                                  {opt}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
-                        <div className="w-20">
-                          <Input
-                            value={ingredient.quantity}
-                            onChange={(e) => updateIngredient(index, "quantity", e.target.value)}
-                            placeholder="Amount"
-                          />
-                        </div>
-                        <div className="w-20">
-                          <Input
-                            value={ingredient.unit}
-                            onChange={(e) => updateIngredient(index, "unit", e.target.value)}
-                            placeholder="Unit"
-                          />
-                        </div>
+
                         {ingredients.length > 1 && (
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => removeIngredient(index)}
+                            onClick={() =>
+                              setIngredients(prev => prev.filter((_, i) => i !== index))
+                            }
                           >
                             <X className="h-4 w-4" />
                           </Button>

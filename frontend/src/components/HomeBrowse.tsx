@@ -12,6 +12,8 @@ import { Search, ChefHat } from "lucide-react";
 import { cuisineTypes, dietaryFilters, timeFilters } from "../data/recipes";
 import type { ApiRecipe, UiRecipe } from "@/src/types/recipe";
 import { RecipeCard } from "./RecipeCard";
+import { useSession } from "../context/CsrfContext";
+import Link from "next/link";
 
 interface User {
     id: string;
@@ -58,13 +60,14 @@ const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
         servings: r.servings ?? 1,
         upvotes: r.upvotes ?? 0,
         bookmarkCount: 0,
-        author
+        difficulty: r.difficulty ?? 1,
+        author,
+        instructions: r.steps ? r.steps.split("\n").filter(s => s.trim() !== "") : [],
     };
 };
 
 export function HomeBrowse({
                                recipes = [],
-                               user = null,
                                onProfile,
                                onCreateRecipe,
                                onRecipeClick,
@@ -76,6 +79,8 @@ export function HomeBrowse({
     const router = useRouter();
     const go = (path: string) => router.push(path as Route);
 
+    const {user, loading} = useSession();
+
     const allRecipes: UiRecipe[] = useMemo(
         () => (recipes ?? []).map(normalizeRecipe),
         [recipes]
@@ -83,8 +88,8 @@ export function HomeBrowse({
 
     const handleRecipeClick = (id: string) =>
         onRecipeClick ? onRecipeClick(id) : go(`/recipes/${id}`);
-    const handleProfile = () => (onProfile ? onProfile() : go("/profile"));
-    const handleCreate = () => (onCreateRecipe ? onCreateRecipe() : go("/recipes/new"));
+    const handleProfile = () => (onProfile ? onProfile() : go("/me"));
+    const handleCreate = () => (onCreateRecipe ? onCreateRecipe() : go("/create"));
     const handleSignOut = () => (onSignOut ? onSignOut() : go("/logout"));
 
     const handleBack = () => (onBack ? onBack() : go("/"));
@@ -126,16 +131,10 @@ export function HomeBrowse({
     return (
         <div className="min-h-screen bg-gray-50">
             <Navigation
-                user={user ?? undefined}
-                currentPage="home"
-                onHome={handleBack}
-                onProfile={handleProfile}
-                onCreateRecipe={handleCreate}
-                onSignOut={handleSignOut}
             />
 
             {/* Guest Notice (only when no user) */}
-            {!user && (
+            {!user && !loading && (
                 <div className="container mx-auto px-4 mt-8">
                     <div className="bg-orange-100 border border-orange-200 rounded-lg p-4 mb-8">
                         <div className="flex items-center justify-between">
@@ -166,7 +165,7 @@ export function HomeBrowse({
                     <div className="flex items-center justify-between mb-4">
                         <div>
                             <h1 className="text-3xl font-bold">
-                                {user ? `Welcome back, ${user.displayName}!` : "Browse Recipes"}
+                                {user ? `Welcome back, ${user.username}!` : "Browse Recipes"}
                             </h1>
                             <p className="text-gray-600">
                                 {user
@@ -247,17 +246,17 @@ export function HomeBrowse({
                 {/* Recipe Cards Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredRecipes.map((r) => (
+                        <Link key={r.id} href={`/recipes/${r.id}` as Route}>
                         <RecipeCard
                             key={r.id}
                             recipe={r}
-                            onOpen={(id) => onRecipeClick?.(id) ?? go(`/recipes/${id}`)}
                             onBookmark={(id: string) => {
                                 console.log("bookmark", id);
                             }}
                             isAuthed={!!user}
                             onRequireAuth={() => (onSignIn?.() ?? go("/sign-in"))}
                         />
-
+                    </Link> 
                     ))}
                 </div>
 

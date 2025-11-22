@@ -3,20 +3,19 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Clock, Users, Heart, TrendingUp } from "lucide-react";
 import type { UiRecipe } from "@/src/types/recipe";
+import Link from "next/link";
 
 type RecipeCardProps = {
     recipe: UiRecipe;
-    onOpen: (id: string) => void;
     onBookmark: (id: string) => void;
     isAuthed: boolean;
     onRequireAuth: () => void;
 };
 
-export function RecipeCard({ recipe, onOpen, onBookmark, isAuthed, onRequireAuth }: RecipeCardProps) {
+export function RecipeCard({ recipe, onBookmark, isAuthed, onRequireAuth }: RecipeCardProps) {
     return (
         <Card
             className="cursor-pointer hover:shadow-lg transition-shadow"
-            onClick={() => onOpen(recipe.id)}
         >
             <div className="aspect-video bg-gray-200 rounded-t-lg overflow-hidden relative">
                 <img src={recipe.imageUrl} alt={recipe.title} className="w-full h-full object-cover" />
@@ -34,7 +33,9 @@ export function RecipeCard({ recipe, onOpen, onBookmark, isAuthed, onRequireAuth
                         <Heart className="h-4 w-4" />
                     </Button>
                 </div>
+                
             </div>
+  
 
             <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">

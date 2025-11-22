@@ -1,11 +1,11 @@
 "use client";
 
-import { useCsrf } from "@/src/context/CsrfContext";
+import { useSession } from "@/src/context/CsrfContext";
 
 const API_BASE = process.env.BACKEND_URL || "http://localhost:8080";
 
 export function useApi() {
-    const { csrfToken } = useCsrf();
+    const { csrfToken } = useSession();
 
     const apiFetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
         const headers = new Headers(init.headers || {});

@@ -7,6 +7,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { useSession } from "../context/CsrfContext";
+import { useRouter } from "next/navigation";
 
 interface User {
   id: string;
@@ -25,16 +27,10 @@ interface NavigationProps {
   onSignOut?: () => void;
 }
 
-export function Navigation({ 
-  user, 
-  currentPage, 
-  onHome, 
-  onProfile, 
-  onCreateRecipe, 
-  onSignIn,
-  onSignUp,
-  onSignOut 
-}: NavigationProps) {
+
+export function Navigation() {
+  const { user, logout } = useSession();
+  const router = useRouter();
   return (
     <header className="border-b bg-white sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
@@ -51,8 +47,7 @@ export function Navigation({
               <>
                 {/* Authenticated Navigation */}
                 <Button
-                  variant={currentPage === "home" ? "default" : "ghost"}
-                  onClick={onHome}
+                  onClick={() => router.push("/")}
                   className="hidden sm:flex items-center space-x-2"
                 >
                   <Home className="h-4 w-4" />
@@ -60,8 +55,7 @@ export function Navigation({
                 </Button>
 
                 <Button
-                  variant={currentPage === "create-recipe" ? "default" : "ghost"}
-                  onClick={onCreateRecipe}
+                  onClick={() => router.push("/recipes/create")}
                   className="hidden sm:flex items-center space-x-2"
                 >
                   <Plus className="h-4 w-4" />
@@ -77,21 +71,21 @@ export function Navigation({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuItem onClick={onProfile}>
+                    <DropdownMenuItem onClick={() => router.push("/me")}>
                       <User className="mr-2 h-4 w-4" />
                       My Profile
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="sm:hidden" />
-                    <DropdownMenuItem onClick={onHome} className="sm:hidden">
+                    <DropdownMenuItem onClick={() => router.push("/browse")} className="sm:hidden">
                       <Home className="mr-2 h-4 w-4" />
                       Browse Recipes
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={onCreateRecipe} className="sm:hidden">
+                    <DropdownMenuItem onClick={() => router.push("/create")} className="sm:hidden">
                       <Plus className="mr-2 h-4 w-4" />
                       Create Recipe
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={onSignOut}>
+                    <DropdownMenuItem onClick={logout}>
                       <LogOut className="mr-2 h-4 w-4" />
                       Sign Out
                     </DropdownMenuItem>
@@ -101,26 +95,20 @@ export function Navigation({
             ) : (
               <>
                 {/* Guest Navigation */}
-                {onHome && (
                   <Button
                     variant="ghost"
-                    onClick={onHome}
+                    onClick={() => router.push("/")}
                     className="hidden sm:flex items-center space-x-2"
                   >
                     <Home className="h-4 w-4" />
                     <span>Home</span>
                   </Button>
-                )}
-                {onSignIn && (
-                  <Button variant="outline" onClick={onSignIn}>
+                  <Button variant="outline" onClick={() => router.push("/sign-in")}>
                     Sign In
                   </Button>
-                )}
-                {onSignUp && (
-                  <Button variant="default" onClick={onSignUp} className="bg-orange-500 hover:bg-orange-600">
+                  <Button variant="default" onClick={() => router.push("/sign-up")} className="bg-orange-500 hover:bg-orange-600">
                     Sign Up
                   </Button>
-                )}
               </>
             )}
           </div>

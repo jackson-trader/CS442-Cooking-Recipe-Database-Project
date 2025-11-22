@@ -1,3 +1,4 @@
+import { useSession } from "../context/CsrfContext";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { ChefHat, Search, Heart, Users } from "lucide-react";
@@ -9,6 +10,8 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ onSignIn, onSignUp, onBrowseGuest }: LandingPageProps) {
+  const {user, loading, logout} = useSession();
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white">
       {/* Header */}
@@ -18,6 +21,7 @@ export function LandingPage({ onSignIn, onSignUp, onBrowseGuest }: LandingPagePr
             <ChefHat className="h-8 w-8 text-orange-500" />
             <span className="text-2xl font-bold text-gray-900">FlavorDB</span>
           </div>
+              {!user && (
           <div className="space-x-4">
             <Button variant="outline" onClick={onSignIn}>
               Sign In
@@ -26,6 +30,14 @@ export function LandingPage({ onSignIn, onSignUp, onBrowseGuest }: LandingPagePr
               Sign Up
             </Button>
           </div>
+          )}
+          {user && (
+                <div className="space-x-4">
+            <Button onClick={logout} className="bg-orange-500 hover:bg-orange-600">
+              Logout
+            </Button>
+          </div>
+          )}
         </div>
       </header>
 
@@ -40,7 +52,7 @@ export function LandingPage({ onSignIn, onSignUp, onBrowseGuest }: LandingPagePr
             Join our community of food lovers. Find new recipes, save your favorites, 
             and share your culinary creations with the world.
           </p>
-          
+          {!user && (
           <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
             <Button 
               size="lg" 
@@ -58,6 +70,18 @@ export function LandingPage({ onSignIn, onSignUp, onBrowseGuest }: LandingPagePr
               Browse as Guest
             </Button>
           </div>
+          )}
+          {user && (
+                <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex sm:justify-center">
+            <Button 
+              size="lg" 
+              onClick={onBrowseGuest}
+              className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3"
+            >
+              Browse Recipes
+            </Button>
+          </div>
+          )}
         </div>
 
         {/* Features */}

@@ -1,3 +1,5 @@
+import { TagEnum } from "./enums";
+
 export interface Recipe {
   id: string;
   title: string;
@@ -219,15 +221,18 @@ export const cuisineTypes = [
   "Japanese"
 ];
 
-export const dietaryFilters = [
-  "All",
-  "Vegetarian",
-  "Vegan", 
-  "Gluten-Free",
-  "Dairy-Free",
-  "Low-Carb",
-  "Keto",
-  "Paleo"
+export const dietaryFilters: TagEnum[] = [
+  "VEGAN",
+  "VEGETARIAN",
+  "GLUTEN_FREE",
+  "DAIRY_FREE",
+  "KETO",
+  "PALEO",
+  "LOW_CARB",
+  "HIGH_PROTEIN",
+  "QUICK_EASY",
+  "DESSERT",
+  "APPETIZER",
 ];
 
 export const timeFilters = [
