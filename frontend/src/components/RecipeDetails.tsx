@@ -148,35 +148,6 @@ export function RecipeDetails({ recipeAPI }: RecipeDetailsProps) {
                     alt={recipe.title}
                     className="w-full h-full object-cover"
                 />
-                {user && (
-                    <div className="absolute top-4 right-4 flex space-x-2">
-                      <Button
-                          size="sm"
-                          variant={isBookmarked ? "default" : "secondary"}
-                          onClick={handleBookmark}
-                          className="bg-white/90 hover:bg-white text-gray-800"
-                      >
-                        <Heart
-                            className={`h-4 w-4 ${
-                                isBookmarked ? "fill-red-500 text-red-500" : ""
-                            }`}
-                        />
-                      </Button>
-                      <Button
-                          size="sm"
-                          variant={isUpvoted ? "default" : "secondary"}
-                          onClick={handleUpvote}
-                          className="bg-white/90 hover:bg-white text-gray-800"
-                      >
-                        <TrendingUp
-                            className={`h-4 w-4 ${
-                                isUpvoted ? "text-orange-500" : ""
-                            }`}
-                        />
-                        <span className="ml-1">{upvoteCount}</span>
-                      </Button>
-                    </div>
-                )}
               </div>
 
               <div className="p-6">
@@ -187,10 +158,6 @@ export function RecipeDetails({ recipeAPI }: RecipeDetailsProps) {
                       <div className="flex items-center space-x-1">
                         <ChefHat className="h-4 w-4" />
                         <span>by {recipe.author}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Heart className="h-4 w-4 fill-red-400 text-red-400" />
-                        <span>{recipe.upvotes} bookmarks</span>
                       </div>
                     </div>
                   </div>

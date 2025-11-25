@@ -41,20 +41,16 @@ const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
             ? r.ownerUsername
             : r?.ownerUsername?.name ?? "Unknown";
 
-    // const dietaryTags = (r.tag ?? "")
-    //     .split("_")
-    //     .map(t => t.trim())
-    //     .filter(Boolean)
-    //     .map(t => t[0] + t.slice(1).toLowerCase());
-
     return {
-        commentCount: 0, comments: [], ingredients: [], // subject to change
+        commentCount: 0,
+        comments: [],
+        ingredients: [], // subject to change
         id: String(r.recipeID),
         title: r.title,
         description: r.description ?? "",
         imageUrl: r.imageUrl ?? "/placeholder.png",
         cuisine: "Other",
-        dietaryTags : r.tag ?? [] ,
+        dietaryTags: r.tag ?? [],
         prepTime: r.prepTime ?? 0,
         cookTime: r.cookTime ?? 0,
         servings: r.servings ?? 1,
@@ -62,7 +58,7 @@ const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
         bookmarkCount: 0,
         difficulty: r.difficulty ?? 1,
         author,
-        instructions: r.steps ? r.steps.split("\n").filter(s => s.trim() !== "") : [],
+        instructions: r.steps ? r.steps.split("\n").filter((s) => s.trim() !== "") : [],
     };
 };
 
@@ -79,7 +75,7 @@ export function HomeBrowse({
     const router = useRouter();
     const go = (path: string) => router.push(path as Route);
 
-    const {user, loading} = useSession();
+    const { user, loading } = useSession();
 
     const allRecipes: UiRecipe[] = useMemo(
         () => (recipes ?? []).map(normalizeRecipe),
@@ -97,6 +93,7 @@ export function HomeBrowse({
     const handleSignUp = () => (onSignUp ? onSignUp() : go("/sign-up"));
 
     const [searchQuery, setSearchQuery] = useState("");
+    const [searchMode, setSearchMode] = useState<"recipe" | "user">("recipe");
     const [selectedCuisine, setSelectedCuisine] = useState("All");
     const [selectedDiet, setSelectedDiet] = useState("All");
     const [selectedTime, setSelectedTime] = useState("All");
@@ -105,9 +102,19 @@ export function HomeBrowse({
         () =>
             allRecipes.filter((recipe) => {
                 const q = searchQuery.toLowerCase();
-                const matchesSearch = !q ||
-                    recipe.title.toLowerCase().includes(q) ||
-                    recipe.description.toLowerCase().includes(q);
+
+                const matchesSearch = (() => {
+                    if (!q) return true;
+
+                    if (searchMode === "recipe") {
+                        return (
+                            recipe.title.toLowerCase().includes(q) ||
+                            recipe.description.toLowerCase().includes(q)
+                        );
+                    }
+
+                    return recipe.author.toLowerCase().includes(q);
+                })();
 
                 const matchesCuisine =
                     selectedCuisine === "All" || recipe.cuisine === selectedCuisine;
@@ -125,13 +132,12 @@ export function HomeBrowse({
 
                 return matchesSearch && matchesCuisine && matchesDiet && matchesTime;
             }),
-        [allRecipes, searchQuery, selectedCuisine, selectedDiet, selectedTime]
+        [allRecipes, searchQuery, searchMode, selectedCuisine, selectedDiet, selectedTime]
     );
 
     return (
         <div className="min-h-screen bg-gray-50">
-            <Navigation
-            />
+            <Navigation />
 
             {/* Guest Notice (only when no user) */}
             {!user && !loading && (
@@ -148,8 +154,12 @@ export function HomeBrowse({
                                 </div>
                             </div>
                             <div className="flex gap-2">
-                                <Button variant="outline" onClick={handleBack}>Back to Home</Button>
-                                <Button variant="outline" onClick={handleSignIn}>Sign In</Button>
+                                <Button variant="outline" onClick={handleBack}>
+                                    Back to Home
+                                </Button>
+                                <Button variant="outline" onClick={handleSignIn}>
+                                    Sign In
+                                </Button>
                                 <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={handleSignUp}>
                                     Sign Up
                                 </Button>
@@ -186,25 +196,51 @@ export function HomeBrowse({
                 <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
                     <h2 className="text-xl font-semibold mb-4">Find Recipes</h2>
 
-                    <div className="relative mb-6">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
-                        <Input
-                            type="text"
-                            placeholder="Search recipes..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10"
-                        />
+                    {/* Search bar + mode toggle */}
+                    <div className="flex flex-col md:flex-row gap-2 mb-6">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
+                            <Input
+                                type="text"
+                                placeholder={
+                                    searchMode === "recipe"
+                                        ? "Search by recipe..."
+                                        : "Search by user..."
+                                }
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-10"
+                            />
+                        </div>
+
+                        <div className="w-full md:w-40">
+                            <Select
+                                value={searchMode}
+                                onValueChange={(v) => setSearchMode(v as "recipe" | "user")}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Search by" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="recipe">By Recipe</SelectItem>
+                                    <SelectItem value="user">By User</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label className="block text-sm font-medium mb-2">Cuisine</label>
                             <Select value={selectedCuisine} onValueChange={setSelectedCuisine}>
-                                <SelectTrigger><SelectValue placeholder="Select cuisine" /></SelectTrigger>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select cuisine" />
+                                </SelectTrigger>
                                 <SelectContent>
                                     {cuisineTypes.map((cuisine) => (
-                                        <SelectItem key={cuisine} value={cuisine}>{cuisine}</SelectItem>
+                                        <SelectItem key={cuisine} value={cuisine}>
+                                            {cuisine}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -213,10 +249,14 @@ export function HomeBrowse({
                         <div>
                             <label className="block text-sm font-medium mb-2">Diet</label>
                             <Select value={selectedDiet} onValueChange={setSelectedDiet}>
-                                <SelectTrigger><SelectValue placeholder="Select diet" /></SelectTrigger>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select diet" />
+                                </SelectTrigger>
                                 <SelectContent>
                                     {dietaryFilters.map((diet) => (
-                                        <SelectItem key={diet} value={diet}>{diet}</SelectItem>
+                                        <SelectItem key={diet} value={diet}>
+                                            {diet}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -225,10 +265,14 @@ export function HomeBrowse({
                         <div>
                             <label className="block text-sm font-medium mb-2">Time</label>
                             <Select value={selectedTime} onValueChange={setSelectedTime}>
-                                <SelectTrigger><SelectValue placeholder="Select time" /></SelectTrigger>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select time" />
+                                </SelectTrigger>
                                 <SelectContent>
                                     {timeFilters.map((time) => (
-                                        <SelectItem key={time} value={time}>{time}</SelectItem>
+                                        <SelectItem key={time} value={time}>
+                                            {time}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -239,7 +283,8 @@ export function HomeBrowse({
                 {/* Results */}
                 <div className="mb-4">
                     <p className="text-gray-600">
-                        {filteredRecipes.length} recipe{filteredRecipes.length !== 1 ? "s" : ""} found
+                        {filteredRecipes.length} recipe
+                        {filteredRecipes.length !== 1 ? "s" : ""} found
                     </p>
                 </div>
 
@@ -247,23 +292,22 @@ export function HomeBrowse({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredRecipes.map((r) => (
                         <Link key={r.id} href={`/recipes/${r.id}` as Route}>
-                        <RecipeCard
-                            key={r.id}
-                            recipe={r}
-                            onBookmark={(id: string) => {
-                                console.log("bookmark", id);
-                            }}
-                            isAuthed={!!user}
-                            onRequireAuth={() => (onSignIn?.() ?? go("/sign-in"))}
-                        />
-                    </Link> 
+                            <RecipeCard
+                                key={r.id}
+                                recipe={r}
+                                isAuthed={!!user}
+                                onRequireAuth={() => (onSignIn?.() ?? go("/sign-in"))}
+                            />
+                        </Link>
                     ))}
                 </div>
 
                 {/* Empty state */}
                 {filteredRecipes.length === 0 && (
                     <div className="text-center py-12">
-                        <p className="text-gray-500 mb-4">No recipes found matching your criteria.</p>
+                        <p className="text-gray-500 mb-4">
+                            No recipes found matching your criteria.
+                        </p>
                         <Button
                             variant="outline"
                             onClick={() => {

@@ -101,11 +101,11 @@ export function LandingPage({ onSignIn, onSignUp, onBrowseGuest }: LandingPagePr
           <Card className="text-center">
             <CardHeader>
               <Heart className="h-12 w-12 text-orange-500 mx-auto mb-4" />
-              <CardTitle>Save Favorites</CardTitle>
+              <CardTitle>Learn New Recipes</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>
-                Bookmark your favorite recipes and create personalized collections for easy access anytime.
+                Pick up on trendy new recipes, and stay up to date with what's hot!
               </CardDescription>
             </CardContent>
           </Card>
@@ -129,6 +129,7 @@ export function LandingPage({ onSignIn, onSignUp, onBrowseGuest }: LandingPagePr
           <p className="text-xl mb-6 opacity-90">
             Join thousands of home cooks sharing their favorite recipes!
           </p>
+          {!user && (
           <div className="space-x-4">
             <Button 
               size="lg" 
@@ -147,6 +148,19 @@ export function LandingPage({ onSignIn, onSignUp, onBrowseGuest }: LandingPagePr
               Explore Recipes
             </Button>
           </div>
+          )}
+          {user && (
+              <div className="space-x-4">
+                <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={onBrowseGuest}
+                    className="border-orange-500 text-orange-500 bg-white hover:bg-orange-50"
+                >
+                  Explore Recipes
+                </Button>
+              </div>
+          )}
         </div>
       </main>
 

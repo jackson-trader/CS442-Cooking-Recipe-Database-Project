@@ -4,7 +4,9 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 
 const API = process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:8080";
 
-type User = { username: string; roles?: string[] };
+type User = {
+  email: string;
+  username: string; roles?: string[] };
 
 type SessionValue = {
   // CSRF
