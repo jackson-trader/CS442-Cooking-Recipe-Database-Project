@@ -25,7 +25,7 @@ export default function MePage() {
   return (
       <MyProfile
           user={profileUser}
-          onHome={() => router.push("/")}
+          onBrowse={() => router.push("/browse")}
           onCreateRecipe={() => router.push("/create")}
           onRecipeClick={(recipeId: string) => router.push(`/recipes/${recipeId}`)}
           onSignOut={logout}

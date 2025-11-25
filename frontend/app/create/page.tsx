@@ -96,11 +96,6 @@ export default function CreateRecipe({}: CreateRecipeProps) {
     }
   };
 
-  const handleSaveDraft = () => {
-    // in the real app, this will post to backend as a draft (if we keep it)
-    console.log("Saving draft...");
-    alert("Recipe saved as draft!");
-  };
 
   const handlePublish = async () => {
     // basic validation
@@ -259,7 +254,7 @@ export default function CreateRecipe({}: CreateRecipeProps) {
                     <div>
                       <Label>Dietary Tags</Label>
                       <div className="flex flex-wrap gap-2 mt-2">
-                        {dietaryFilters.slice(1).map(tag => (
+                        {dietaryFilters.map(tag => (
                             <Badge
                                 key={tag}
                                 variant={selectedDietaryTags.includes(tag) ? "default" : "outline"}
@@ -431,14 +426,6 @@ export default function CreateRecipe({}: CreateRecipeProps) {
                     )}
 
                     <div className="pt-4 space-y-2">
-                      <Button
-                          onClick={handleSaveDraft}
-                          variant="outline"
-                          className="w-full"
-                      >
-                        <Save className="h-4 w-4 mr-2" />
-                        Save Draft
-                      </Button>
                       <Button
                           onClick={handlePublish}
                           className="w-full bg-orange-500 hover:bg-orange-600"

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Route } from "next";
 
@@ -9,11 +9,13 @@ import { Input } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Navigation } from "./Navigation";
 import { Search, ChefHat } from "lucide-react";
-import { cuisineTypes, dietaryFilters, timeFilters } from "../data/recipes";
-import type { ApiRecipe, UiRecipe } from "@/src/types/recipe";
+import { timeFilters } from "../data/recipes";
+import type {ApiRecipe, UiComment, UiRecipe} from "@/src/types/recipe";
 import { RecipeCard } from "./RecipeCard";
 import { useSession } from "../context/CsrfContext";
 import Link from "next/link";
+
+const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8080";
 
 interface User {
     id: string;
@@ -35,32 +37,73 @@ interface HomeBrowseProps {
     onSignUp?: () => void;
 }
 
-const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
-    const author =
+const TAG_OPTIONS = [
+    { value: "All",          label: "All"          },
+    { value: "VEGAN",        label: "Vegan"        },
+    { value: "VEGETARIAN",   label: "Vegetarian"   },
+    { value: "GLUTEN_FREE",  label: "Gluten Free"  },
+    { value: "DAIRY_FREE",   label: "Dairy Free"   },
+    { value: "KETO",         label: "Keto"         },
+    { value: "PALEO",        label: "Paleo"        },
+    { value: "LOW_CARB",     label: "Low Carb"     },
+    { value: "HIGH_PROTEIN", label: "High Protein" },
+    { value: "QUICK_EASY",   label: "Quick & Easy" },
+    { value: "DESSERT",      label: "Dessert"      },
+    { value: "APPETIZER",    label: "Appetizer"    },
+
+];
+
+const getAuthor = (r: ApiRecipe): string => {
+
+    if (r.author && r.author.trim().length > 0) {
+        return r.author;
+    }
+
+
+    const fromOwnerUsername =
         typeof r.ownerUsername === "string"
             ? r.ownerUsername
-            : r?.ownerUsername?.name ?? "Unknown";
+            : r.ownerUsername?.name;
+
+
+    const fromOwnerObject =
+        r.owner?.username ??
+        r.owner?.displayName ??
+        r.owner?.name;
+
+    return fromOwnerUsername || fromOwnerObject || "Unknown";
+};
+
+const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
+    const comments: UiComment[] = (r.comments ?? []).map((c) => ({
+        id: String(c.commentID),
+        author: c.commenterUsername,
+        content: c.content,
+    }));
 
     return {
-        commentCount: 0,
-        comments: [],
-        ingredients: [], // subject to change
         id: String(r.recipeID),
         title: r.title,
         description: r.description ?? "",
         imageUrl: r.imageUrl ?? "/placeholder.png",
-        cuisine: "Other",
         dietaryTags: r.tag ?? [],
         prepTime: r.prepTime ?? 0,
         cookTime: r.cookTime ?? 0,
         servings: r.servings ?? 1,
         upvotes: r.upvotes ?? 0,
         bookmarkCount: 0,
+        author: getAuthor(r),
+        ingredients: r.ingredients ?? [],
+        comments,
+        commentCount: comments.length,
+        instructions: r.steps
+            ? r.steps.split("\n").filter((s) => s.trim() !== "")
+            : [],
         difficulty: r.difficulty ?? 1,
-        author,
-        instructions: r.steps ? r.steps.split("\n").filter((s) => s.trim() !== "") : [],
     };
 };
+
+
 
 export function HomeBrowse({
                                recipes = [],
@@ -77,30 +120,67 @@ export function HomeBrowse({
 
     const { user, loading } = useSession();
 
-    const allRecipes: UiRecipe[] = useMemo(
+    const baseRecipes: UiRecipe[] = useMemo(
         () => (recipes ?? []).map(normalizeRecipe),
         [recipes]
     );
 
     const handleRecipeClick = (id: string) =>
         onRecipeClick ? onRecipeClick(id) : go(`/recipes/${id}`);
-    const handleProfile = () => (onProfile ? onProfile() : go("/me"));
     const handleCreate = () => (onCreateRecipe ? onCreateRecipe() : go("/create"));
-    const handleSignOut = () => (onSignOut ? onSignOut() : go("/logout"));
-
     const handleBack = () => (onBack ? onBack() : go("/"));
     const handleSignIn = () => (onSignIn ? onSignIn() : go("/sign-in"));
     const handleSignUp = () => (onSignUp ? onSignUp() : go("/sign-up"));
 
     const [searchQuery, setSearchQuery] = useState("");
     const [searchMode, setSearchMode] = useState<"recipe" | "user">("recipe");
-    const [selectedCuisine, setSelectedCuisine] = useState("All");
-    const [selectedDiet, setSelectedDiet] = useState("All");
+    const [selectedDiet, setSelectedDiet] = useState<string>("All");
     const [selectedTime, setSelectedTime] = useState("All");
+
+
+    const [tagRecipes, setTagRecipes] = useState<UiRecipe[] | null>(null);
+    const [tagLoading, setTagLoading] = useState(false);
+    const [tagError, setTagError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (selectedDiet === "All") {
+            setTagRecipes(null);
+            setTagError(null);
+            return;
+        }
+
+        (async () => {
+            try {
+                setTagLoading(true);
+                setTagError(null);
+
+                const url = `${API_BASE}/api/recipes/tags?tags=${encodeURIComponent(selectedDiet)}`;
+                const res = await fetch(url, { credentials: "include" });
+
+                if (!res.ok) {
+                    console.error("Tag filter request failed", res.status);
+                    setTagError(`Failed to filter by tag (${res.status})`);
+                    setTagRecipes(null);
+                    return;
+                }
+
+                const data: ApiRecipe[] = await res.json();
+                setTagRecipes(data.map(normalizeRecipe));
+            } catch (err) {
+                console.error("Error fetching tag-filtered recipes", err);
+                setTagError("Error talking to server");
+                setTagRecipes(null);
+            } finally {
+                setTagLoading(false);
+            }
+        })();
+    }, [selectedDiet]);
+
+    const recipesToFilter = tagRecipes ?? baseRecipes;
 
     const filteredRecipes = useMemo(
         () =>
-            allRecipes.filter((recipe) => {
+            recipesToFilter.filter((recipe) => {
                 const q = searchQuery.toLowerCase();
 
                 const matchesSearch = (() => {
@@ -116,12 +196,6 @@ export function HomeBrowse({
                     return recipe.author.toLowerCase().includes(q);
                 })();
 
-                const matchesCuisine =
-                    selectedCuisine === "All" || recipe.cuisine === selectedCuisine;
-
-                const matchesDiet =
-                    selectedDiet === "All" || recipe.dietaryTags.includes(selectedDiet);
-
                 const totalTime = recipe.prepTime + recipe.cookTime;
                 const matchesTime =
                     selectedTime === "All" ||
@@ -130,9 +204,9 @@ export function HomeBrowse({
                     (selectedTime === "1-2 hours" && totalTime > 60 && totalTime <= 120) ||
                     (selectedTime === "2+ hours" && totalTime > 120);
 
-                return matchesSearch && matchesCuisine && matchesDiet && matchesTime;
+                return matchesSearch && matchesTime;
             }),
-        [allRecipes, searchQuery, searchMode, selectedCuisine, selectedDiet, selectedTime]
+        [recipesToFilter, searchQuery, searchMode, selectedTime]
     );
 
     return (
@@ -160,7 +234,10 @@ export function HomeBrowse({
                                 <Button variant="outline" onClick={handleSignIn}>
                                     Sign In
                                 </Button>
-                                <Button className="bg-orange-500 hover:bg-orange-600 text-white" onClick={handleSignUp}>
+                                <Button
+                                    className="bg-orange-500 hover:bg-orange-600 text-white"
+                                    onClick={handleSignUp}
+                                >
                                     Sign Up
                                 </Button>
                             </div>
@@ -185,7 +262,10 @@ export function HomeBrowse({
                         </div>
 
                         {user && (
-                            <Button onClick={handleCreate} className="bg-orange-500 hover:bg-orange-600">
+                            <Button
+                                onClick={handleCreate}
+                                className="bg-orange-500 hover:bg-orange-600"
+                            >
                                 Create New Recipe
                             </Button>
                         )}
@@ -230,32 +310,17 @@ export function HomeBrowse({
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Tag filter (server-backed) */}
                         <div>
-                            <label className="block text-sm font-medium mb-2">Cuisine</label>
-                            <Select value={selectedCuisine} onValueChange={setSelectedCuisine}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select cuisine" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {cuisineTypes.map((cuisine) => (
-                                        <SelectItem key={cuisine} value={cuisine}>
-                                            {cuisine}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-2">Diet</label>
+                            <label className="block text-sm font-medium mb-2">Tag</label>
                             <Select value={selectedDiet} onValueChange={setSelectedDiet}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select diet" />
+                                    <SelectValue placeholder="Select tag" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {dietaryFilters.map((diet) => (
-                                        <SelectItem key={diet} value={diet}>
-                                            {diet}
+                                    {TAG_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt.value} value={opt.value}>
+                                            {opt.label}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -278,6 +343,13 @@ export function HomeBrowse({
                             </Select>
                         </div>
                     </div>
+
+                    {tagLoading && (
+                        <p className="mt-4 text-sm text-gray-500">Loading tag results…</p>
+                    )}
+                    {tagError && (
+                        <p className="mt-4 text-sm text-red-500">{tagError}</p>
+                    )}
                 </div>
 
                 {/* Results */}
@@ -303,7 +375,7 @@ export function HomeBrowse({
                 </div>
 
                 {/* Empty state */}
-                {filteredRecipes.length === 0 && (
+                {filteredRecipes.length === 0 && !tagLoading && (
                     <div className="text-center py-12">
                         <p className="text-gray-500 mb-4">
                             No recipes found matching your criteria.
@@ -312,7 +384,6 @@ export function HomeBrowse({
                             variant="outline"
                             onClick={() => {
                                 setSearchQuery("");
-                                setSelectedCuisine("All");
                                 setSelectedDiet("All");
                                 setSelectedTime("All");
                             }}

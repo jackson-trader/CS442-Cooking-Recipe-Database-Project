@@ -11,7 +11,7 @@ type RecipeCardProps = {
     onRequireAuth: () => void;
 };
 
-export function RecipeCard({ recipe, isAuthed, onRequireAuth }: RecipeCardProps) {
+export function RecipeCard({ recipe }: RecipeCardProps) {
     return (
         <Card
             className="cursor-pointer hover:shadow-lg transition-shadow"
@@ -45,7 +45,6 @@ export function RecipeCard({ recipe, isAuthed, onRequireAuth }: RecipeCardProps)
                 </div>
 
                 <div className="flex flex-wrap gap-1">
-                    <Badge variant="secondary" className="text-xs">{recipe.cuisine}</Badge>
                     {recipe.dietaryTags.slice(0, 2).map((tag, idx) => (
                         <Badge key={`${recipe.id}-tag-${idx}`} variant="outline" className="text-xs">
                             {tag}

@@ -10,7 +10,15 @@ export type ApiRecipe = {
     difficulty?: number | null;
     upvotes?: number | null;
     steps?: string | null;
+
+    author?: string | null;
     ownerUsername?: { name?: string } | string | null;
+    owner?: {
+        username?: string | null;
+        displayName?: string | null;
+        name?: string | null;
+    } | null;
+
     imageUrl?: string | null;
     tag?: string[] | null;
     ingredients?: string[];
@@ -37,7 +45,6 @@ export type UiRecipe = {
     title: string;
     description: string;
     imageUrl: string;
-    cuisine: string;
     dietaryTags: string[];
     prepTime: number;
     cookTime: number;

@@ -40,7 +40,6 @@ const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
     title: r.title,
     description: r.description ?? "",
     imageUrl: r.imageUrl ?? "/placeholder.png",
-    cuisine: "Other",
     dietaryTags: r.tag ?? [],
     prepTime: r.prepTime ?? 0,
     cookTime: r.cookTime ?? 0,
@@ -73,6 +72,24 @@ export function RecipeDetails({ recipeAPI }: RecipeDetailsProps) {
   // comments live in local state so we can add to them
   const [comments, setComments] = useState(recipe.comments);
   const [commentCount, setCommentCount] = useState(recipe.commentCount);
+
+  const refreshComments = async () => {
+    try {
+      const res = await apiFetch(`/api/recipes/r/byId/${recipe.id}`);
+      if (!res.ok) {
+        console.error("Failed to refresh comments", res.status);
+        return;
+      }
+
+      const freshApi = (await res.json()) as ApiRecipe;
+      const fresh = normalizeRecipe(freshApi);
+
+      setComments(fresh.comments);
+      setCommentCount(fresh.commentCount);
+    } catch (err) {
+      console.error("Error refreshing comments:", err);
+    }
+  };
 
   const handleUpvote = () => {
     if (!user) return;
@@ -112,21 +129,7 @@ export function RecipeDetails({ recipeAPI }: RecipeDetailsProps) {
         return;
       }
 
-      const created = (await res.json()) as {
-        id: number;
-        recipeID: number;
-        text: string;
-        authorUsername: string;
-      };
-
-      const uiComment = {
-        id: String(created.id),
-        author: created.authorUsername,
-        content: created.text,
-      };
-
-      setComments((prev) => [...prev, uiComment]);
-      setCommentCount((prev) => prev + 1);
+      await refreshComments();
       setNewComment("");
     } catch (err) {
       console.error("Error posting comment:", err);
@@ -191,9 +194,6 @@ export function RecipeDetails({ recipeAPI }: RecipeDetailsProps) {
 
                 {/* Tags */}
                 <div className="flex flex-wrap gap-2 mb-6">
-                  <Badge className="bg-orange-100 text-orange-800">
-                    {recipe.cuisine}
-                  </Badge>
                   {recipe.dietaryTags.map((tag) => (
                       <Badge key={tag} variant="outline">
                         {tag}

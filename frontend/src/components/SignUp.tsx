@@ -64,7 +64,7 @@ export function SignUp({ onSignUp, onSignIn, onBack }: SignUpProps) {
     }
 
     // default navigation
-    go("/browse");
+    go("/sign-in");
     setIsLoading(false);
   };
 

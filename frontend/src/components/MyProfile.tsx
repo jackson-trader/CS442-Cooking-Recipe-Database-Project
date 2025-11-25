@@ -20,7 +20,7 @@ interface User {
 
 interface MyProfileProps {
   user: User;
-  onHome: () => void;
+  onBrowse: () => void;
   onCreateRecipe: () => void;
   onRecipeClick: (recipeId: string) => void;
   onSignOut: () => void;
@@ -37,7 +37,6 @@ const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
     title: r.title,
     description: r.description ?? "",
     imageUrl: r.imageUrl ?? "/placeholder.png",
-    cuisine: "Other",
     dietaryTags: r.tag ?? [],
     prepTime: r.prepTime ?? 0,
     cookTime: r.cookTime ?? 0,
@@ -57,7 +56,7 @@ const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
 
 export function MyProfile({
                             user,
-                            onHome,
+                            onBrowse,
                             onCreateRecipe,
                             onRecipeClick,
                           }: MyProfileProps) {
@@ -133,9 +132,6 @@ export function MyProfile({
           </div>
 
           <div className="flex flex-wrap gap-1">
-            <Badge variant="secondary" className="text-xs">
-              {recipe.cuisine}
-            </Badge>
             {recipe.dietaryTags.slice(0, 2).map((tag) => (
                 <Badge key={tag} variant="outline" className="text-xs">
                   {tag}
@@ -207,7 +203,7 @@ export function MyProfile({
                     >
                       Create Your First Recipe
                     </Button>
-                    <Button onClick={onHome} variant="outline" className="ml-2">
+                    <Button onClick={onBrowse} variant="outline" className="ml-2">
                       Browse Recipes
                     </Button>
                   </div>
