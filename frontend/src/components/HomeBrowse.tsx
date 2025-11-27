@@ -55,9 +55,14 @@ const TAG_OPTIONS = [
 
 const getAuthor = (r: ApiRecipe): string => {
 
-    if (r.author && r.author.trim().length > 0) {
-        return r.author;
-    }
+    const fromOwner =
+        r.owner?.username && r.owner.username.trim().length > 0
+            ? r.owner.username
+            : undefined;
+
+
+    const fromAuthorField =
+        r.author && r.author.trim().length > 0 ? r.author : undefined;
 
 
     const fromOwnerUsername =
@@ -65,20 +70,18 @@ const getAuthor = (r: ApiRecipe): string => {
             ? r.ownerUsername
             : r.ownerUsername?.name;
 
-
-    const fromOwnerObject =
-        r.owner?.username ??
-        r.owner?.displayName ??
-        r.owner?.name;
-
-    return fromOwnerUsername || fromOwnerObject || "Unknown";
+    return fromOwner || fromAuthorField || fromOwnerUsername || "Unknown";
 };
+
 
 const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
     const comments: UiComment[] = (r.comments ?? []).map((c) => ({
-        id: String(c.commentID),
-        author: c.commenterUsername,
-        content: c.content,
+        id: String(c.id ?? c.commentID),          // support both
+        content: c.text ?? c.content ?? "",       // new then old
+        author:
+            c.commenterUsername ??
+            r.owner?.username ??
+            "Unknown",
     }));
 
     return {
@@ -86,7 +89,7 @@ const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
         title: r.title,
         description: r.description ?? "",
         imageUrl: r.imageUrl ?? "/placeholder.png",
-        dietaryTags: r.tag ?? [],
+        dietaryTags: r.tags ?? [],
         prepTime: r.prepTime ?? 0,
         cookTime: r.cookTime ?? 0,
         servings: r.servings ?? 1,
@@ -102,6 +105,7 @@ const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
         difficulty: r.difficulty ?? 1,
     };
 };
+
 
 
 

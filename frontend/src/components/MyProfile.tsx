@@ -37,7 +37,7 @@ const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
     title: r.title,
     description: r.description ?? "",
     imageUrl: r.imageUrl ?? "/placeholder.png",
-    dietaryTags: r.tag ?? [],
+    dietaryTags: r.tags ?? [],
     prepTime: r.prepTime ?? 0,
     cookTime: r.cookTime ?? 0,
     servings: r.servings ?? 1,
@@ -87,7 +87,8 @@ export function MyProfile({
       }
     }
     load();
-  });
+  }, [user.displayName]);
+
 
   const RecipeCard = ({
                         recipe,

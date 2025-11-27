@@ -45,7 +45,7 @@ export function RecipeCard({ recipe }: RecipeCardProps) {
                 </div>
 
                 <div className="flex flex-wrap gap-1">
-                    {recipe.dietaryTags.slice(0, 2).map((tag, idx) => (
+                    {recipe.dietaryTags.slice(0, 4).map((tag, idx) => (
                         <Badge key={`${recipe.id}-tag-${idx}`} variant="outline" className="text-xs">
                             {tag}
                         </Badge>

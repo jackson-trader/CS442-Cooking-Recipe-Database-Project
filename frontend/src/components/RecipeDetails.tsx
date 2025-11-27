@@ -15,7 +15,7 @@ import {
   MessageCircle,
   Send,
 } from "lucide-react";
-import { ApiRecipe, UiRecipe } from "../types/recipe";
+import {ApiRecipe, type UiComment, UiRecipe} from "../types/recipe";
 import { useSession } from "../context/CsrfContext";
 import { useApi } from "@/src/lib/apiClient";
 
@@ -23,16 +23,35 @@ interface RecipeDetailsProps {
   recipeAPI: ApiRecipe;
 }
 
-const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
-  const author =
+const getAuthor = (r: ApiRecipe): string => {
+
+  const fromOwner =
+      r.owner?.username && r.owner.username.trim().length > 0
+          ? r.owner.username
+          : undefined;
+
+
+  const fromAuthorField =
+      r.author && r.author.trim().length > 0 ? r.author : undefined;
+
+
+  const fromOwnerUsername =
       typeof r.ownerUsername === "string"
           ? r.ownerUsername
-          : r?.ownerUsername?.name ?? "Unknown";
+          : r.ownerUsername?.name;
 
-  const comments = (r.comments ?? []).map((c) => ({
-    id: String(c.commentID),
-    author: c.commenterUsername,
-    content: c.content,
+  return fromOwner || fromAuthorField || fromOwnerUsername || "Unknown";
+};
+
+
+const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
+  const comments: UiComment[] = (r.comments ?? []).map((c) => ({
+    id: String(c.id ?? c.commentID),
+    content: c.text ?? c.content ?? "",
+    author:
+        c.commenterUsername ??
+        r.owner?.username ??
+        "Unknown",
   }));
 
   return {
@@ -40,22 +59,23 @@ const normalizeRecipe = (r: ApiRecipe): UiRecipe => {
     title: r.title,
     description: r.description ?? "",
     imageUrl: r.imageUrl ?? "/placeholder.png",
-    dietaryTags: r.tag ?? [],
+    dietaryTags: r.tags ?? [],
     prepTime: r.prepTime ?? 0,
     cookTime: r.cookTime ?? 0,
     servings: r.servings ?? 1,
     upvotes: r.upvotes ?? 0,
     bookmarkCount: 0,
-    author,
-    difficulty: r.difficulty ?? 1,
-    instructions: r.steps
-        ? r.steps.split("\n").filter((s) => s.trim() !== "")
-        : [],
+    author: getAuthor(r),           // <- now robust
     ingredients: r.ingredients ?? [],
     comments,
     commentCount: comments.length,
+    instructions: r.steps
+        ? r.steps.split("\n").filter((s) => s.trim() !== "")
+        : [],
+    difficulty: r.difficulty ?? 1,
   };
 };
+
 
 
 export function RecipeDetails({ recipeAPI }: RecipeDetailsProps) {

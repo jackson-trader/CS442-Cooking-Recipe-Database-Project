@@ -11,26 +11,33 @@ export type ApiRecipe = {
     upvotes?: number | null;
     steps?: string | null;
 
-    author?: string | null;
-    ownerUsername?: { name?: string } | string | null;
     owner?: {
-        username?: string | null;
-        displayName?: string | null;
-        name?: string | null;
+        userID: number;
+        username: string;
+        email: string;
+        recipes?: string[];
+        comments?: ApiComment[];
     } | null;
 
+    author?: string | null;
+    ownerUsername?: { name?: string } | string | null;
+
     imageUrl?: string | null;
-    tag?: string[] | null;
+    tags?: string[] | null;
     ingredients?: string[];
     comments?: ApiComment[] | null;
 };
 
 export type ApiComment = {
-    commentID: number;
-    recipeID: number;
-    content: string;
-    commenterUsername: string;
-}
+    id: number;
+    text: string;
+    createdAt: string;
+
+    commentID?: number;
+    recipeID?: number;
+    content?: string;
+    commenterUsername?: string;
+};
 
 // UI shape used by the app/components
 
