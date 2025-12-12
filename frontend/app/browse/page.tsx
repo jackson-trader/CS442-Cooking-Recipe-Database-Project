@@ -18,7 +18,7 @@ type ApiRecipe = {
 };
 
   export default async function Page() {
-    const URL = process.env.BACKEND_URL || "http://localhost:8080";
+    const URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
     const host = headers().get("host");
     const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
     const baseUrl = `${protocol}://${host}`;

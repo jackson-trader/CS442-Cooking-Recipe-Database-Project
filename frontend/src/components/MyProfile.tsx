@@ -62,12 +62,13 @@ export function MyProfile({
                           }: MyProfileProps) {
   const [recipes, setRecipes] = useState<UiRecipe[]>([]);
   const [loadingRecipes, setLoadingRecipes] = useState(true);
+  const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8080";
 
   useEffect(() => {
     async function load() {
       try {
         const res = await fetch(
-            `http://localhost:8080/api/recipes/u/${user.displayName}`,
+            `${API_BASE}/api/recipes/u/${user.displayName}`,
             {
               credentials: "include",
             }

@@ -2,7 +2,7 @@
 
 import { useSession } from "@/src/context/CsrfContext";
 
-const API_BASE = process.env.BACKEND_URL || "http://localhost:8080";
+const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL|| "http://localhost:8080";
 
 export function useApi() {
     const { csrfToken } = useSession();
