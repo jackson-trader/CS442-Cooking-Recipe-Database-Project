@@ -54,7 +54,8 @@ public class SecurityConfig {
         CookieCsrfTokenRepository csrfRepo = CookieCsrfTokenRepository.withHttpOnlyFalse();
         csrfRepo.setCookieCustomizer(c -> c.sameSite("None").secure(true));
         http
-                .csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(csrfRepo)
                         .ignoringRequestMatchers("/api/user/create")
                 )
                 .securityContext(sc -> sc.requireExplicitSave(false))
@@ -62,7 +63,7 @@ public class SecurityConfig {
                     var c = new CorsConfiguration();
                     c.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8080", frontendUrl));
                     c.setAllowedMethods(List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
-                    c.setAllowedHeaders(List.of("Content-Type","X-XSRF-TOKEN"));
+                    c.setAllowedHeaders(List.of("*"));
                     c.setAllowCredentials(true);
                     return c;
                 }))

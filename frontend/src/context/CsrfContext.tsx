@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-// const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8080";
-const API = "";
+const API = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:8080";
+// const API = "";
 
 type User = {
   email: string;
