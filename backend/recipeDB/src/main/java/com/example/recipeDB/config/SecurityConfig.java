@@ -1,5 +1,6 @@
 package com.example.recipeDB.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,11 +23,16 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+    @Value("${frontend.url}")
+    private String frontendUrl;
+
     private static final String[] SWAGGER_WHITELIST = {
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html"
     };
+    // load frontend URL from .env file
+
     private final UserDetailsService userDetailsService;
     public SecurityConfig(UserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
@@ -54,7 +60,7 @@ public class SecurityConfig {
 
                 .cors(cors -> cors.configurationSource(req -> {
                     var c = new CorsConfiguration();
-                    c.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8080"));
+                    c.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8080", frontendUrl));
                     c.setAllowedMethods(List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
                     c.setAllowedHeaders(List.of("Content-Type","X-XSRF-TOKEN"));
                     c.setAllowCredentials(true);
